@@ -1,31 +1,31 @@
 const net = require('net');
-const fs = require('fs');
 const port = 8124;
-let questionAndAnswers = [];
-
-var Question = function(question, answer) {
-	this.question = question;
-	this.answer = answer;
-};
 
 const server = net.createServer((client) => {
     let seed = 0;
     console.log('Client connected');
 
     client.setEncoding('utf8');
-
+    let isConnected = false;
     client.on('data', (data) => {
         console.log(data);
-        if (data === 'QA')
+        if (isConnected)
         {
-            client.write("ACK");
 
         }
         else
         {
-            client.write("DEC");
-            client.on('end', () => console.log('Client disconnected'));
-            client.end();
+            if (data === 'QA')
+	        {
+		        client.write("ACK");
+		        isConnected = true;
+	        }
+	        else
+	        {
+		        client.write("DEC");
+		        client.on('end', () => console.log('Client disconnected'));
+		        client.end();
+	        }
         }
     });
 

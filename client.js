@@ -1,6 +1,13 @@
 const net = require('net');
 const readLine = require('readline');
+const fs = require('fs');
 const port = 8124;
+let questionAndAnswers = [];
+
+var Question = function(question, answer) {
+	this.question = question;
+	this.answer = answer;
+};
 
 const client = new net.Socket();
 
@@ -11,6 +18,21 @@ const rl = readLine.createInterface({
     output: process.stdout
 });
 
+fs.readFile('qa.json','utf-8', (err, content) =>
+{
+	if (err)
+	{
+		throw err;
+	}
+	JSON.parse(content, (question, answer) =>
+	{
+		questionAndAnswers.push(new Question(question, answer));
+	});
+	questionAndAnswers.pop();
+	console.log(questionAndAnswers);
+	questionAndAnswers.sort();
+	console.log(questionAndAnswers);
+});
 //rl.question('Input a command\r\n', (answer) => {
         client.connect(port, function() {
             console.log('Connected');
@@ -21,22 +43,11 @@ const rl = readLine.createInterface({
             console.log(data);
             if (data === "ACK")
             {
-	            fs.readFile('qa.json','utf-8', (err, content) =>
-	            {
-		            if (err)
-		            {
-			            throw err;
-		            }
-		            JSON.parse(content, (question, answer) =>
-		            {
-			            questionAndAnswers.push(new Question(question, answer));
-		            });
-		            questionAndAnswers.pop();
-		            questionAndAnswers.sort();
-
-
-		            client.write("Q: ");
-	            });
+				questionAndAnswers.forEach((data) =>
+				{
+					console.log(data);
+					client.write(`Question: ${data.question}`);
+				});
             }
             else
             {
