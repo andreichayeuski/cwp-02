@@ -1,15 +1,11 @@
 const net = require('net');
+const getArrayOfQA = require('./getArrayOfQA');
 const readLine = require('readline');
-const fs = require('fs');
-const port = 8124;
-let questionAndAnswers = [];
 
-var Question = function(question, answer) {
-	this.question = question;
-	this.answer = answer;
-};
+const port = 8124;
 
 const client = new net.Socket();
+let questionAndAnswers = getArrayOfQA('qa.json');
 
 client.setEncoding('utf8');
 
@@ -18,46 +14,46 @@ const rl = readLine.createInterface({
     output: process.stdout
 });
 
-fs.readFile('qa.json','utf-8', (err, content) =>
-{
-	if (err)
-	{
-		throw err;
-	}
-	JSON.parse(content, (question, answer) =>
-	{
-		questionAndAnswers.push(new Question(question, answer));
-	});
-	questionAndAnswers.pop();
-	console.log(questionAndAnswers);
-	questionAndAnswers.sort();
-	console.log(questionAndAnswers);
-});
-//rl.question('Input a command\r\n', (answer) => {
-        client.connect(port, function() {
-            console.log('Connected');
-            client.write("QA");
-        });
+rl.question('Input a command\r\n', (answer) => {
+		client.connect(port, function() {
+			console.log('Connected');
+			client.write(answer);
+		});
 
+		let counter = 0;
+		let isConnected = false;
         client.on('data', function(data) {
-            console.log(data);
-            if (data === "ACK")
+            console.log("Received from server: " + data);
+            if (isConnected)
             {
-				questionAndAnswers.forEach((data) =>
-				{
-					console.log(data);
-					client.write(`Question: ${data.question}`);
-				});
+            	console.log(`Question: ${questionAndAnswers[counter-1].question}\r\nAnswer: ${data}\r\nRight: ${questionAndAnswers[counter-1].answer === data ? "yes" : "no"}\r\n`);
+	            if (counter === questionAndAnswers.length)
+	            {
+		            client.destroy();
+	            }
+	            else
+	            {
+		            client.write(`Question: ${questionAndAnswers[counter++].question}`);
+	            }
             }
             else
             {
-                console.log("array\r\n" + data);
-	            client.destroy();
+	            if (data === "ACK")
+	            {
+		            isConnected = true;
+		            client.write(`Question: ${questionAndAnswers[counter++].question}`);
+	            }
+	            else
+	            {
+		            console.log("array\r\n" + data);
+		            client.destroy();
+	            }
             }
+
         });
 
         client.on('close', function () {
             console.log('Connection closed');
         });
-   // rl.close();
-//});
+   rl.close();
+});
