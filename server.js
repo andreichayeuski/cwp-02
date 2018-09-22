@@ -1,5 +1,12 @@
 const net = require('net');
+const fs = require('fs');
 const port = 8124;
+let questionAndAnswers = [];
+
+var Question = function(question, answer) {
+	this.question = question;
+	this.answer = answer;
+};
 
 const server = net.createServer((client) => {
     let seed = 0;
@@ -12,6 +19,7 @@ const server = net.createServer((client) => {
         if (data === 'QA')
         {
             client.write("ACK");
+
         }
         else
         {
