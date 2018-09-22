@@ -1,20 +1,33 @@
 const net = require('net');
+const readline = require('readline');
 const port = 8124;
 
 const client = new net.Socket();
 
 client.setEncoding('utf8');
 
-client.connect(port, function() {
-    console.log('Connected');
-    client.write('\r\nHello, Server!\r\nLove,\r\nClient.\r\n');
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
 });
 
-client.on('data', function(data) {
-    console.log(data);
-    client.destroy();
-});
+rl.question('Input a command\r\n', (answer) => {
+        client.connect(port, function() {
+            console.log('Connected');
+            client.write(answer);
+        });
 
-let on = client.on('close', function() {
-    console.log('Connection closed');
+        client.on('data', function(data) {
+            console.log(data);
+            if (data === "ACK")
+            {
+                client.write("ok");
+            }
+            // client.destroy();
+        });
+
+        client.on('close', function () {
+            console.log('Connection closed');
+        });
+    rl.close();
 });
