@@ -1,11 +1,9 @@
 const child_process = require("child_process");
-const client = require("./client");
 
-for (let i = 0; i < parseInt(process.argv[2], 10); i++)
+for (let i = 0; i < process.argv[2]; i++)
 {
 	console.log(i.toString());
-	client();
-	/*child_process.exec("node ./client.js", (err, sout, serr) =>
+	child_process.exec("node client.js", (err, sysout) =>
 	{
 		if (err)
 		{
@@ -13,6 +11,6 @@ for (let i = 0; i < parseInt(process.argv[2], 10); i++)
 			return;
 		}
 		console.log("   ---***---   " + i + "   ---***---   ");
-		console.log(sout);
-	});*/
+		console.log(sysout);
+	});
 }

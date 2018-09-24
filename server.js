@@ -4,19 +4,23 @@ const getArrayOfQA = require('./getArrayOfQA');
 const port = 8124;
 let questionAndAnswers = getArrayOfQA('qa.json');
 
-fs.mkdir("log", (err) =>
+if (!fs.existsSync("log"))
 {
-	if (err)
+	fs.mkdir("log", (err) =>
 	{
-		throw "Error founded: " + err;
-	}
-});
+		if (err)
+		{
+			throw "Error founded: " + err;
+		}
+	});
+}
+
 const server = net.createServer((client) => {
     let seed = 0;
     console.log('Client connected');
 	client.identifier = Date.now() + seed++; // unique id
 	let filename = `log/client_${client.identifier}.log`;
-	fs.writeFile(filename, "", function (err) {
+	fs.writeFile(filename, "", (err) => {
 		if (err)
 		{
 			throw "Error found: " + err;
@@ -28,7 +32,12 @@ const server = net.createServer((client) => {
 	client.on('end', () => console.log('Client disconnected\r\n'));
 	client.on('data', (data) => {
         console.log("Received from client: " + data);
-        fs.appendFileSync(filename, data + "\r\n");
+        fs.appendFile(filename, data + "\r\n", (err) => {
+	        if (err)
+	        {
+		        throw "Error found: " + err;
+	        }
+        });
         if (isConnected)
         {
 	        let max = questionAndAnswers.length;
@@ -39,7 +48,12 @@ const server = net.createServer((client) => {
 	        console.log(data + " " + questionAndAnswers[rand].answer + "\r\n");
 	        let message = '' + questionAndAnswers[rand].answer;
 	        client.write(message);
-	        fs.appendFileSync(filename, message + "\r\n");
+	        fs.appendFile(filename, message + "\r\n", (err) => {
+		        if (err)
+		        {
+			        throw "Error found: " + err;
+		        }
+	        });
         }
         else
         {
@@ -56,7 +70,12 @@ const server = net.createServer((client) => {
 		        client.write(message);
 		        client.end();
 	        }
-	        fs.appendFileSync(filename, message + "\r\n");
+	        fs.appendFile(filename, message + "\r\n",  (err) => {
+		        if (err)
+		        {
+			        throw "Error found: " + err;
+		        }
+	        });
         }
     });
 
